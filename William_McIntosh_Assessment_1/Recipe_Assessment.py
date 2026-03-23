@@ -51,10 +51,10 @@ def create_recipe():
 def see_recipe():
     recipes = load_recipes()
     if not recipes:
-        print("No recipes found.")
+        print("No recipes found.\n")
         return
     for recipe in recipes:
-        print(recipe)
+        print(f"{recipe}\n")
 
 
 def modify_recipe():
@@ -65,7 +65,11 @@ def modify_recipe():
 
     for recipe in recipes:
         name_line = recipe.split("\n")[0]
+        # splits the recipe string at every \n
+        # produces a list of lines
+        # the [0] thats the first item in the list
         actual_name = name_line.replace("Recipe name: ","").strip().lower()
+        #removes the "recipe name" part and random whitespace
         if actual_name == recipe_name:
             print("Recipe found. Enter new details")
             new_name = input("New name: ")
@@ -123,10 +127,12 @@ def main():
         "delete": delete_recipe
     }
     while True:
-        choice = input("\nNew, View, Modify, Delete, Quit\n").lower()
+        print("~"*30,"\n")
+        choice = input("New, View, Modify, Delete, Quit\n\n").lower()
         if choice == "quit":
             break
         elif choice in actions:
+            print("\n","~"*30,"\n")
             actions[choice]()
         else:
             print("Invalid input")
@@ -135,4 +141,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-## MODIFY AND DELETE ARE BUGGED >:(
