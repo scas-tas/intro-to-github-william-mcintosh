@@ -118,17 +118,27 @@ def delete_recipe():
     save_recipe(new_recipes)
 
 
+def reset():
+    confirm = input("CONFIRM FACTORY RESET [YES / NO]\n\n").lower()
+    if confirm == "yes":
+        save_recipe([])
+        print("\nAll recipes deleted.")
+    else:
+        print("\nReset Cancelled.")
+
+
 def main():
     # the dictionary maps user commands to functions
     actions = {
         "new": create_recipe,
         "view": see_recipe,
         "modify": modify_recipe,
-        "delete": delete_recipe
+        "delete": delete_recipe,
+        "reset": reset
     }
     while True:
         print("~"*30,"\n")
-        choice = input("New, View, Modify, Delete, Quit\n\n").lower()
+        choice = input("New, View, Modify, Delete, Reset, Quit\n\n").lower()
         if choice == "quit":
             break
         elif choice in actions:
@@ -141,3 +151,4 @@ def main():
 if __name__ == "__main__":
     main()
 
+    
