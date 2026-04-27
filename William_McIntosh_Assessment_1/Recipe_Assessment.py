@@ -122,7 +122,7 @@ def reset():
     confirm = input("CONFIRM FACTORY RESET [YES / NO]\n\n").lower()
     if confirm == "yes":
         save_recipe([])
-        print("\nAll recipes deleted.")
+        print("\nAll recipes deleted.\n")
     else:
         print("\nReset Cancelled.")
 
