@@ -1,0 +1,246 @@
+import pygame
+import sys
+import random
+
+# --- DISPLAY ---
+WIDTH, HEIGHT = 640, 480
+BG_COLOUR = (0, 0, 0)
+WINDOW_TITLE = "Snake Game"
+
+# --- GRID ---
+GRID_SIZE = 10
+
+# --- SNAKE ---
+SNAKE_COLOUR = (0, 200, 10)
+SNAKE_BOOST_COLOUR = (255, 100, 50)
+SNAKE_DEAD_COLOUR = (150, 150, 150)
+SNAKE_START_X = WIDTH // 2
+SNAKE_START_Y = HEIGHT // 2
+
+# --- FOOD ---
+FOOD_COLOUR = (255, 0, 0)
+FOOD_BORDER_RADIUS = 3
+FOOD_COUNT = 3
+
+# --- WALL ---
+WALL_COLOUR = (100, 100, 255)
+WALL_COUNT = 10
+
+WALL_MIN_LENGTH = 5
+WALL_MAX_LENGTH = 20
+
+WALL_SAFE_X = SNAKE_START_X
+WALL_SAFE_Y = SNAKE_START_Y
+WALL_SAFE_RADIUS = 100
+
+# --- SPEED ---
+BASE_SPEED = 10
+BOOST_MULTIPLIER = 2
+BOOST_FLAT_BONUS = 5
+SPEED_SCORE_DIVISOR = 5
+
+# --- UI ---   
+
+    # --- SCORE ---
+SCORE_FONT_NAME = "Orbital"
+SCORE_FONT_SIZE = 50
+SCORE_COLOUR = (255, 255, 255)
+
+    # --- DEATH ---
+DEATH_FONT_NAME = "algerian"
+GAME_OVER_TEXT = "Game Over"
+DEATH_FONT_SIZE = 67
+DEATH_COLOUR = (255, 20, 20)
+PRE_DEATH_TIME = 500
+DEATH_TIME = 1670
+    # --- OVERLAY ---
+OVERLAY_COLOUR = (0, 0, 0)
+OVERLAY_ALPHA = (150)
+
+
+
+class Snake:
+    def __init__(self):
+        self.body = [(SNAKE_START_X, SNAKE_START_Y),
+                    (SNAKE_START_X - GRID_SIZE, SNAKE_START_Y),
+                    (SNAKE_START_X - GRID_SIZE * 2, SNAKE_START_Y)]
+        self.direction = 'RIGHT'
+        self.change_to = self.direction
+
+    def change_direction(self):
+        if any((self.change_to == 'UP' and not self.direction == 'DOWN',
+                self.change_to == 'DOWN' and not self.direction == 'UP',
+                self.change_to == 'LEFT' and not self.direction == 'RIGHT',
+                self.change_to == 'RIGHT' and not self.direction == 'LEFT')):
+            self.direction = self.change_to
+
+    def move(self):
+        x, y = self.body[0]  # Current head position
+
+        if self.direction == 'UP':
+            y -= GRID_SIZE
+        elif self.direction == 'DOWN':
+            y += GRID_SIZE
+        elif self.direction == 'LEFT':
+            x -= GRID_SIZE
+        elif self.direction == 'RIGHT':
+            x += GRID_SIZE
+
+        self.body = [(x, y)] + self.body[:-1]
+
+    def grow(self):
+        self.body.append(self.body[-1])
+
+    def draw(self, surface, boosting=False, colour=None):
+        if colour is None:
+            colour = SNAKE_BOOST_COLOUR if boosting else SNAKE_COLOUR
+
+        for segment in self.body:
+            pygame.draw.rect(surface, colour,
+                             pygame.Rect(segment[0], segment[1], GRID_SIZE, GRID_SIZE))
+
+    def check_collision(self):
+        x, y = self.body[0]
+
+        if x < 0 or x >= WIDTH or y < 0 or y >= HEIGHT:
+            return True
+
+        if (x, y) in self.body[1:]:
+            return True
+
+        return False
+
+
+class Food:
+    def __init__(self, occupado):
+        self.position = self._random_position(occupado)
+
+    def _random_position(self, occupado):
+        while True:
+            pos = (random.randint(0, (WIDTH - GRID_SIZE) // GRID_SIZE) * GRID_SIZE,
+                    random.randint(0, (HEIGHT - GRID_SIZE) // GRID_SIZE) * GRID_SIZE)
+            if pos not in occupado:
+                return pos
+    def spawn(self, occupado):
+        self.position = self._random_position(occupado)
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, FOOD_COLOUR,
+                         pygame.Rect(self.position[0], self.position[1], GRID_SIZE, GRID_SIZE),
+                         border_radius=FOOD_BORDER_RADIUS)
+
+
+class Wall:
+    def __init__(self, segments):
+        self.segments = set(segments)
+
+    def draw(self, surface):
+        for segment in self.segments:
+            pygame.draw.rect(surface, WALL_COLOUR,
+                             pygame.Rect(segment[0], segment[1], GRID_SIZE, GRID_SIZE))
+
+    def check_collision(self, head):
+        return head in self.segments
+
+def generate_wall_segments(count, min_length, max_length):
+    segments = []
+    for _ in range(count):
+        x = random.randint(0, (WIDTH - GRID_SIZE) // GRID_SIZE) * GRID_SIZE
+        y = random.randint(0, (HEIGHT - GRID_SIZE) // GRID_SIZE) * GRID_SIZE
+        length = random.randint(min_length, max_length)
+        direction = random.choice(['horizontal', 'vertical'])
+
+        for i in range(length):
+            if direction == 'horizontal':
+                seg = (x + i * GRID_SIZE, y)
+            else:
+                seg = (x, y + i * GRID_SIZE)
+
+            if abs(seg[0] - WALL_SAFE_X) > WALL_SAFE_RADIUS or abs(seg[1] - WALL_SAFE_Y) > WALL_SAFE_RADIUS:
+                segments.append(seg)
+
+    return segments
+
+def game_loop():
+    pygame.init()
+    window = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption(WINDOW_TITLE)
+    clock = pygame.time.Clock()
+
+    snake = Snake()
+    wall = Wall(generate_wall_segments(WALL_COUNT, WALL_MIN_LENGTH, WALL_MAX_LENGTH))
+    foods = [Food(wall.segments) for _ in range(FOOD_COUNT)]
+
+    score = 0
+    boosting = False
+
+    score_font = pygame.font.SysFont(SCORE_FONT_NAME, SCORE_FONT_SIZE)
+    death_font = pygame.font.SysFont(DEATH_FONT_NAME, DEATH_FONT_SIZE)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    snake.change_to = 'UP'
+                elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    snake.change_to = 'DOWN'
+                elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    snake.change_to = 'LEFT'
+                elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    snake.change_to = 'RIGHT'
+                elif event.key == pygame.K_SPACE:
+                    boosting = True
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    boosting = False
+
+        snake.change_direction()
+        snake.move()
+
+        if boosting:
+            tick = (BASE_SPEED + score // SPEED_SCORE_DIVISOR) * BOOST_MULTIPLIER + BOOST_FLAT_BONUS
+        else:
+            tick = (BASE_SPEED + score // SPEED_SCORE_DIVISOR) * 1.5
+
+        for food in foods:
+            if snake.body[0] == food.position:
+                snake.grow()
+                food.spawn(wall.segments)
+                score += 2 if boosting else 1
+
+        if snake.check_collision() or wall.check_collision(snake.body[0]):
+            pygame.time.wait(50)
+            # snake.draw(window, colour=SNAKE_DEAD_COLOUR)
+            # pygame.display.flip()
+            overlay = pygame.Surface((WIDTH, HEIGHT))
+            overlay.set_alpha(OVERLAY_ALPHA)
+            overlay.fill(OVERLAY_COLOUR)
+            window.blit(overlay, (0, 0))
+            pygame.display.flip()
+            pygame.time.wait(PRE_DEATH_TIME)
+            gameover_text = death_font.render(GAME_OVER_TEXT, True, DEATH_COLOUR)
+            text_rect = gameover_text.get_rect(center=(WIDTH//2, HEIGHT//2))
+            window.blit(gameover_text, text_rect)
+            pygame.display.flip()
+            pygame.time.wait(DEATH_TIME)
+            pygame.quit()
+            sys.exit()
+
+        window.fill(BG_COLOUR)
+        wall.draw(window)
+        snake.draw(window, boosting)
+        for food in foods:
+            food.draw(window)
+
+        score_text = score_font.render(f'Score: {score}', True, SCORE_COLOUR)
+        window.blit(score_text, (10, 10))
+
+        pygame.display.flip()
+        clock.tick(tick)
+
+
+if __name__ == "__main__":
+    game_loop()
