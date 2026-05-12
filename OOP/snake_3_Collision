@@ -1,7 +1,7 @@
 import pygame
 import sys
 import random
-
+#
 # --- DISPLAY ---
 WIDTH, HEIGHT = 640, 480
 BG_COLOUR = (0, 0, 0)
