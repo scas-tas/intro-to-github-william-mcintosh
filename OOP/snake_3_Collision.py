@@ -1,7 +1,8 @@
 import pygame
 import sys
 import random
-#
+
+# --- CONFIG BLOCK ---
 # --- DISPLAY ---
 WIDTH, HEIGHT = 640, 480
 BG_COLOUR = (0, 0, 0)
@@ -25,7 +26,6 @@ FOOD_COUNT = 3
 # --- WALL ---
 WALL_COLOUR = (100, 100, 255)
 WALL_COUNT = 10
-
 WALL_MIN_LENGTH = 5
 WALL_MAX_LENGTH = 20
 
@@ -53,11 +53,10 @@ DEATH_FONT_SIZE = 67
 DEATH_COLOUR = (255, 20, 20)
 PRE_DEATH_TIME = 500
 DEATH_TIME = 1670
+
     # --- OVERLAY ---
 OVERLAY_COLOUR = (0, 0, 0)
 OVERLAY_ALPHA = (150)
-
-
 
 class Snake:
     def __init__(self):
@@ -110,17 +109,18 @@ class Snake:
 
         return False
 
-
 class Food:
     def __init__(self, occupado):
         self.position = self._random_position(occupado)
 
     def _random_position(self, occupado):
+
         while True:
             pos = (random.randint(0, (WIDTH - GRID_SIZE) // GRID_SIZE) * GRID_SIZE,
                     random.randint(0, (HEIGHT - GRID_SIZE) // GRID_SIZE) * GRID_SIZE)
             if pos not in occupado:
                 return pos
+
     def spawn(self, occupado):
         self.position = self._random_position(occupado)
 
@@ -128,7 +128,6 @@ class Food:
         pygame.draw.rect(surface, FOOD_COLOUR,
                          pygame.Rect(self.position[0], self.position[1], GRID_SIZE, GRID_SIZE),
                          border_radius=FOOD_BORDER_RADIUS)
-
 
 class Wall:
     def __init__(self, segments):
@@ -240,7 +239,6 @@ def game_loop():
 
         pygame.display.flip()
         clock.tick(tick)
-
 
 if __name__ == "__main__":
     game_loop()
