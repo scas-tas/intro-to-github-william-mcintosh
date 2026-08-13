@@ -29,7 +29,7 @@ def main():
     #classroom = [[1,2],[3,4]]
     #classroom = [[0,0],[0,0]]
     #classroom = [[1,2,0],[0,3,4],[5,0,0]]
-    classroom = [[1,2,3],[0,0,4],[5,0,0]]
+    #classroom = [[1,2,3],[0,0,4],[5,0,0]]
     #classroom = [[1,2],[3,4]]
 
     print("Empty seats:", count_empty(classroom))

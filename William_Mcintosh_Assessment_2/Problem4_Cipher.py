@@ -6,6 +6,9 @@ def encode(message: str, shift: int) -> str:
             print (ord(character))
         elif character.islower():
             result += chr((ord(character) - ord("a") + shift) % 26 + ord("a"))
+            # example with character = "x", shift = 3
+            # chr( (120 - 97 + 3) % 26 + 97 )
+            # chr(97) = "a"
             print (ord(character))
         else:
             result += character

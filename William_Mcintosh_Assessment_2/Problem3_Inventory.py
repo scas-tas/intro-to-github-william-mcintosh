@@ -2,12 +2,9 @@ def add_item(inv: dict, name: str, quantity: int) -> None:
     count = inv.get(name, 0)
     inv[name] = count + quantity
 
- 
 def remove_item(inv: dict, name: str, quantity: int) -> None:
     if name in inv:
         inv[name] -= quantity
-
-
  
 def get_stock_report(inv: dict) -> str:
         report = []
@@ -15,8 +12,6 @@ def get_stock_report(inv: dict) -> str:
             if quantity > 0:
                 report.append(f"{name}: {inv[name]}")
         return "\n".join(report)
-
-
 
 def test_cases():
     inv = {}
